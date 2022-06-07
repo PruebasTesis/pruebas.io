@@ -1,0 +1,53 @@
+Project:  c:/Program Files/Imagix/data/demo_javaocr/demo_java
+Analyzed: 04 Jan 2012 (17:05)
+Printed:  05 Jun 2022 (20:54)
+
+Graph Context
+
+|-- javaocr
+|   |-- gui
+|   |-- ocrplugins
+|   |   |-- aspectratio
+|   |   |       aspectratioocr.java
+|   |   |           aspectRatio.AspectRatioOCR
+|   |   |               AspectRatioOCR.scan
+|   |   |-- handwriting
+|   |   |-- mseocr
+|   |   |   |-- ocrscanner.java
+|   |   |   |       mseOCR.OCRScanner
+|   |   |   |           OCRScanner.scan
+|   |   |   \-- trainingimageloader.java
+|   |   |           mseOCR.TrainingImageLoader
+|   |   |               TrainingImageLoader.load
+|   |   |-- characterextractor.java
+|   |   |       ocrPlugins.CharacterExtractor
+|   |   |           CharacterExtractor.slice
+|   |   |-- charactertracer.java
+|   |   |       ocrPlugins.CharacterTracer
+|   |   |           CharacterTracer.getTracedImage
+|   |   \-- lineextractor.java
+|   |           ocrPlugins.LineExtractor
+|   |               LineExtractor.slice
+|   \-- scanner
+|       |-- accuracy
+|       |-- documentscanner.java
+|       |       scanner.DocumentScanner
+|       |       |-- DocumentScanner.processRow
+|       |       \-- DocumentScanner.scan
+|       \-- documentscannerlistener.java
+|               scanner.DocumentScannerListener
+|                   DocumentScannerListener.beginDocument
+\-- rt.jar
+        java
+        |-- lang
+        |       Integer.class
+        |           lang.Integer
+        |               Integer.Integer
+        \-- util
+                ArrayList.class
+                    util.ArrayList
+                    |-- ArrayList.add
+                    |-- ArrayList.ArrayList
+                    |-- ArrayList.get
+                    |-- ArrayList.remove
+                    \-- ArrayList.size

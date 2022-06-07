@@ -1,0 +1,457 @@
+File -- c:/Program Files/Imagix/data/demo_oomrm/include/types.h
+
+Project:  c:/Program Files/Imagix/data/demo_oomrm/demo_c_cpp
+Analyzed: 30 Aug 2021 (20:07)
+Printed:  05 Jun 2022 (19:17)
+
+
+/*
+Object Oriented Mobile Robot Model (OOMRM) C++  Library Copyright (C) 2002-2006  Derek Jones
+
+This library is free software; you can redistribute it  and/or
+modify it under the terms of the GNU Lesser General Public
+License  as published by the Free Software Foundation; either
+version 2.1 of the  License, or (at your option) any later version.
+
+This library is  distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY;  without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A  PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more  details.
+
+You should have received a copy of the GNU Lesser General  Public
+License along with this library; if not, write to the Free  Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA   02111-1307  USA
+*/
+/** oenum.h
+ * Enumerations, Defines, and such.
+ * More such stuff.
+ */
+
+#ifndef MRMENUM_H
+#define MRMENUM_H
+#include "hardware/types.h"
+// Under simulator main is a function.
+#ifdef DOS
+  #define OOMRM_CLASS class
+  #define OOMRM_FIXED float
+  #define DOS_DEBUG(i)  logfile << i << endl; 
+  #define DOS_DEBUG2(m,i) logfile << m << i << endl;
+//  #define MAIN D_main
+#else
+// Debugging set to NOOP 
+  #define OOMRM_CLASS
+  #define DOS_DEBUG(i)  ; 
+  #define DOS_DEBUG2(m,i) ;
+  // will use David's fixed point library.
+  #define OOMRM_FIXED float
+//  #define MAIN main
+#endif
+#define DISTANCE_FROM_CARD 8
+//#define	DEFAULT_QSM_IARB	15
+// TPU has higher arbitration value.
+#define	DEFAULT_QSM_IARB	0xC
+#ifndef NULL
+#define NULL 0
+#endif
+#ifndef uint32
+#define uint32 unsigned int 
+#endif
+#ifndef int32
+#define int32 int
+#endif
+
+#ifndef ABS
+#define ABS(x) ((x) < 0 ? -(x) : (x))
+#endif
+
+enum MATH_TYPE { FIXED_MATH, FLOAT_MATH, INT_MATH };
+// -------------------------------------------------------------------------------------------------------
+// * Task Priorities for RTOS (uC/OS-II)
+// -------------------------------------------------------------------------------------------------------
+#define LOWEST_PRIORITY 7
+enum TASK_PRIORITY {
+  /* Before changing HOSTCOMM/COMMUNICATION priority, or doing something silly, let me tell you a story...
+     I switched to SC architecture and couldn't figure out why I wasn't get any input into TaskComm.
+     The TPU/UART was one of the highest priorities, right?  But I had forgotten that I AM NOT THE ROBOT.
+     I do not have a TPU port on the PC.  I have an emulation thread (task) that makes me look like I 
+     have a TPU port.   The SC architecture was thus blocking the IO communication emualtion thread in TaskHostComm! (ouch).
+     Well, that was 4 days wasted.
+  */
+//  #ifdef DOS
+  HOSTCOMM_PRIORITY=LOWEST_PRIORITY, // if not DOS then it will just be wasted ;) (output
+  COMMUNICATION_PRIORITY,            // TaskComm (input:pend eb500_sem (packet complete)))
+  DASI_PRIORITY, //=LOWEST_PRIORITY,     // TaskDASI (output:pend TaskMS)
+/*  #else
+  DASI_PRIORITY=LOWEST_PRIORITY,     // TaskDASI (output:pend TaskMS)
+  #endif
+*/
+//  COMMUNICATION_PRIORITY,            // TaskComm (input:pend eb500_sem (packet complete))
+//  MESSAGE_SELECTOR_PRIORITY,           // (output:pend HeartBeat_Sem))
+  ENCODEDMOTOR_PRIORITY,               // (timed)
+  PRIMITIVE_DRIVER_PRIORITY,           // (timed)
+//  DIALOGUE_PRIORITY,                   // pend Dialogue_Sem
+//  SPEAKER_PRIORITY,                    // (?)
+//  OBSTACLE_DETECTION_PRIORITY,         // (timed)
+  MOTION_DRIVER_PRIORITY,              // (timed)
+//  KEEP_STRAIGHT_PRIORITY,              // (timed) (
+  VECTOR_DRIVER_PRIORITY,              // (timed)
+  KEEP_STRAIGHT_PRIORITY,              // (timed) (
+  DRIVER_PRIORITY,                     // pend Driver_Mbox
+  CONNECT_PRIORITY,                    // (timed)
+//  STATUS_PRIORITY,                     // (timed)
+  DIALOGUE_PRIORITY,                   // pend Dialogue_Sem
+  START_PRIORITY,                      // (timed 1 second)
+  RANGE_REFRESH_PRIORITY,              // (timed)
+//  TASK_WALL_FOLLOW_PRIORITY,           // (--)
+  TTS_PRIORITY,                        // pend TTS_Mbox
+  HOST_PRIORITY, // low priority host stuff (timed)
+  HEARTBEAT_PRIORITY,                  // (timed or pending mcb semaphore)  
+};
+// Make sure this is updated as highest priority above.
+#define HIGHEST_PRIORITY HEARTBEAT_PRIORITY
+/*
+#ifdef DOS
+#define HIGHEST_PRIORITY HOST_PRIORITY
+#else
+#define HIGHEST_PRIORITY TTS_PRIORITY
+#endif
+//#define HIGHEST_PRIORITY HOST_PRIORITY
+*/
+
+/// ROBOTDIAMETER_TRANSLATE must be less then wheelbase by 32 mm.
+/** This simply translates the robot diameter
+    the number < 32767 
+    NOTE: unit is millimeters.
+*/
+#define ROBOTDIAMETER_TRANSLATE 270
+
+/// WHEELBASE_TRANSLATE must be less then wheelbase by 32 mm.
+/** This simply translates the wheelbase such that
+    the number < 32767 
+    NOTE: unit is millimeters.
+*/
+#define WHEELBASE_TRANSLATE 200
+/// WHEELDIAMETER_TRANSLATE must be less then wheel diameter by 32 mm.
+/** This simply translates the wheelbase such that
+    the number < 32767 
+    NOTE: unit is millimeters.
+*/
+#define WHEELDIAMETER_TRANSLATE 130
+/// Used to Convert wheelbase/wheel diameter to 16 bit for transmission.
+#define TRANSLATE_TO_16BIT(m,T) (word (((int32)m)- ( (T)*1000L) ) )
+/// Used to convert wheelbase/wheel diameter from a 16 bit (translated) number.
+#define TRANSLATE_FROM_16BIT(m,T) (MICROMETER((int32)(m)+((T)*1000L)))
+
+
+// Define the nodeid to send to (PC host=1; embedded=2)
+// NOTE: sometimes I'm lazy and just assign dest ot a broadcast (255) as its guaranteed to not be equal to itsself.
+//       Need some sort of dynamic registration.
+#define HOSTNODE 1
+#define TARGETNODE 2
+#ifdef DOS
+#define SOURCENODE 1
+#define DESTNODE 2
+#else
+#define DESTNODE 1
+#define SOURCENODE 2
+#endif
+
+
+enum CLOCK_DIRECTION { CLOCKWISE, COUNTER_CLOCKWISE };
+enum UNIT_TYPE { INCH_TYPE, MILLIMETER_TYPE, CENTIMETER_TYPE, METER_TYPE,  };
+enum SCENE_MODE { SCENE_EDITOR, ROBOT_POSITION, WAYPOINT_INPUT };
+enum LINETYPE {  NONE=0, HORIZONTAL=1, VERTICAL=2, HV=3, CIRCLE=4 };
+/// for integral angular 
+//typedef short DEGREE;
+typedef int DEGREE; // changed so it would be same size as OOMRM_MEMORY_DATA_TYPE
+/// for real angular  direction.
+#define RADIAN float
+//  #define SPEED fixed
+  typedef float SPEED;
+/// Minimum value of occupancy grid cell to trigger an obstacle
+#define OBSTACLE_MINIMUM 18
+///Hard coded to the spacing between grid points (here did this come from?)
+//#define GRIDX	(int)((float)(5.48)/GRANULARITY)
+///Hard coded to the spacing between grid points
+//#define GRIDY	(int)((float)(3.66)/GRANULARITY)
+
+// Parameter types for MAP_STORE
+enum PID {
+		MAP_CELL=100,
+		MAP_LAYER=101,
+		PATH_FLAG=104,
+ 		CLEAR_PATH=105,
+ 		SEARCH_PATH=106
+
+ };
+typedef short CELL_TYPE;
+enum CELL_STATE { CLEAR=0, DANGER_ZONE=128, WALL=255, UNDETERMINED };
+
+//typedef short MAP_UNIT;
+/// Priority for TPU class.
+enum PRIORITY { DISABLED=0, LOW_PRIORITY, MIDDLE_PRIORITY, HIGH_PRIORITY };
+/// Specify either the E port or F port.
+enum PORT { PORT_A, PORT_B, PORT_C, PORT_D, PORT_E, PORT_F, PORT_G };
+/// PI of course
+#define PI 3.14159265358979323846264
+//#define RADIAN_CONVERSION (PI/180.0)
+#define RADIAN_CONVERSION 0.0174532925199432
+//#define DEGREE_CONVERSION 57.295779513082379
+#define DEGREE_CONVERSION 57.298
+//#define DEGREE_CONVERSION 57.297779513082370
+#define SQRT_2 1.41421356237309504
+//#define CIBV 4
+///  HIGH: for low voltage versus high (5v) voltage.
+#define HIGH true
+/// LOW: opposite of HIGH
+#define LOW false
+/// OFF: same as false
+#define OFF false
+/// ON: opposite of OFF
+#define ON true
+/// uint8: 8 bit unsigned data
+//typedef unsigned char uint8;
+/// word: 16 bit unsigned data.
+typedef unsigned short int word;
+/// long_word 32 bit unsigned data
+typedef unsigned int long_word;
+/// Basic direction in space.
+enum FACING { NORTH=0, SOUTH=180, EAST=90, WEST=270, UNKNOWN_FACING };
+/// short for which side something is on.
+enum HAND { LEFT=0, RIGHT=1, NO_HAND=2  };
+/// mostly applies to a mobilerobot--direction of travel.
+// WARNING: REMEMBER TO UPDATE motion_string in print.cpp if update below!
+enum MOTION  {STOP=0, TRAVEL_FORWARD=1, TRAVEL_BACKWARD=2, TRAVEL_LEFT=3, TRAVEL_RIGHT=4, TRAVEL_CENTER=5,
+              TRAVEL_UTURN=6, TRAVEL_TURN=7, TRAVEL_ARC, TRAVEL_CIRCULAR_RIGHT, TRAVEL_CIRCULAR_RIGHT45, TRAVEL_CIRCULAR_LEFT, TRAVEL_CIRCULAR_LEFT45, TRAVEL_SAME, WAYPOINT, FUNCTION_COMMAND, BAD_COMMAND};
+/// DC-MOTOR modes of operation.
+enum MOTOR_MODE { LOCKED_ANTIPHASE=0, SIGN_MAGNITUDE, SIGN_MAGNITUDE2 };
+/// encoder channel type.
+enum CHANNEL_TYPE { PRIMARY_CHANNEL, SECONDARY_CHANNEL };
+/// encoder mode 
+enum ENCODER_MODE_TYPE { FAST_MODE, NORMAL_MODE, SINGLE_CHANNEL_MODE };
+// System clock speed
+//typedef long CLOCK
+#define VOID_EVENT void*
+/// function pointers 
+typedef void (*fooshort)(short); // uart callback
+typedef void (*foochar)(char); // uart callback
+typedef char (*charfoo)(void); // inbyte callback
+typedef bool (*boolfoo)(void); // havebyte callback
+typedef void (*foodelay)(int, int,int, int); // compatible with     OSTimeDlyHMSM(0,0,0,25);
+/// Callbacks for DMP architecture.
+typedef void (*foo2)(void*, void*);
+typedef void (*foovoid)(void);
+typedef void (*foo)(void*);
+typedef void (*fooplus)(void*);
+/// power is expressed from 0-100 (percentage)
+typedef int32 POWER;
+/// a channel on any port.
+typedef int IOLINE;
+/// velocity measurements (now has direction--negative)
+//typedef fixed SPEED;		// millimeters/second (was int before 3.1)
+///  time measurements in seconds
+typedef unsigned char SECOND;
+/// measurements in milliseconds.
+typedef unsigned int MILLISECOND;
+/// time measurements in microseconds.
+typedef unsigned int MICROSECOND;
+/// distance in inches
+typedef float INCH;
+  /// distance measurement in millimeter
+//typedef float MILLIMETER;  
+/// distance measurement in centimeters.
+typedef int32 CENTIMETER;
+typedef int32 MILLIMETER;
+typedef int32 MICROMETER;
+typedef int32 NANOMETER;  ///<  Encoder Units (EU)
+typedef int32 ENCODER_TYPE;  ///<  Encoder Units (EU)
+/// measures frequency (cycles/second)
+typedef long_word FREQUENCY;
+/// measures location in space
+typedef float POSITION;
+/// angle in degrees (0..360) no negatives.
+typedef short atomic_rotation;
+
+// Used in star.h 
+#define MAX_STAR_NODES 10000
+// 30x330 at 4" per tile gives 10'x110'.  Just enough for hall contest.
+
+//#define GRIDX 30
+//#define GRIDY 300
+//##define GRIDY 330
+// at 4" this is 278"x513" which is the size of clipped (minus some cabinets) house without living room (small house, eh)
+//#define GRIDX 70
+//#define GRIDY 128
+// RSSC Room Demonstration (9025 bytes)
+//#define GRIDX 95
+//#define GRIDY 95
+/// JAUS defined component states.
+enum JAUS_STATE { INITIALIZE, STANDBY, READY, EMERGENCY, FAILURE, SHUTDOWN };
+/// Used for transferring list items across network. 
+enum DIRECTORY_OPCODE { RESET_LIST, NEXT_ITEM, FIRST_ITEM, LAST_ITEM};
+/// Defines resolution for motor power increment.
+#define POWER_RESOLUTION 5000
+// This controls the frequency that the encoded motors update motor position (milliseconds).
+// 1000/EM_UPDATE_PERIOD must be whole number!!!
+#define EM_UPDATE_PERIOD 40
+// really 7463.169 but who's that accurate? 
+// Below sample is with 140 mm wheel and 59000 encoder clicks
+// ENCODER_UNIT (wheel circumference/encoder clicks) is width of one encoder click in nanometers--
+// this is the distance traveled in one encoder click or the fundamental resolution of the system.
+//#define ENCODER_UNIT 7463
+// How many ENCODER UNITs in a MILLIMETER (basic unit) (134.156157) 
+// take 1000000/ENCODER_UNIT (133.9943...)
+//#define MILLIMETER_TO_EU 134
+//#define EU_TO_MILLIMETER 0.007463
+enum PLAYBACK_MODE { REAL_TIME, STEP_THROUGH };
+#define PLAYBACK_BLKSIZE  121
+// ------------------------
+// CAMERA TYPES
+// ------------------------
+#define NOOP 0
+
+// -----------------------------------
+// C328 Types
+// -----------------------------------
+enum C328_COLOR_TYPE { 
+  C328_Gray_Scale_2=0x1,
+  C328_Gray_Scale_4=0x2,
+  C328_Gray_Scale_8=0x3,
+  C328_Color_12=5,
+  C328_Color_16=6,
+  C328_JPEG=7
+  };
+
+//Preview Resolution 80x60 01h 160x120 03h
+enum C328_PREVIEW_RESOLUTION
+  {
+  C328_80x60   = 1,
+  C328_160x120 = 3,
+  };
+
+enum C328_JPEG_RESOLUTION
+  {
+    C328_80x64   = 1,
+    C328_160x128 = 3,
+    C328_320x240 = 5,
+    C328_640x480 = 7
+  };
+  
+enum C328_COMMAND
+  {
+  C328_Initial = 0x01,
+  C328_Get_Picture = 0x4,
+  C328_Snapshot = 0x5,
+  C328_Set_Package_Size = 0x6,
+  C328_Set_Baudrate = 0x7,
+  C328_Reset = 0x8,
+  C328_Power_Off = 0x9,
+  C328_Data = 0xA,
+  C328_SYNC = 0xD,
+  C328_ACK = 0xE,
+  C328_NAK = 0xF,
+  C328_Light_Frequency = 0x13
+  };
+  
+enum C328_RESET_TYPE
+  {
+  C328_Reset_Board = 0,
+  C328_Reset_State_Machine=1,
+  C328_Reset_Special_Firmware=0xFF
+};
+
+
+enum C328_PICTURE_TYPE
+  {
+    C328_Snapshot_Picture     = 1,
+    C328_Preview_Picture      = 2,
+    C328_JPEG_Preview_Picture = 5
+  };
+
+enum C328_SNAPSHOT_TYPE
+  {
+    C328_Compressed_Picture   = 0,
+    C328_Uncompressed_Picture = 1
+  };
+  
+typedef enum C328_PICTURE_TYPE C328_DATA_TYPE;
+
+enum C328_ERROR_NUMBER
+  {
+  C328_GOOD                            = 0x0,
+  C328_Picture_Type_Error              = 0x01,
+  C328_Picture_Up_Scale                = 0x02,
+  C328_Picture_Scale_Error             = 0x03,
+  C328_Unexpected_Reply                = 0x04,
+  C328_Send_Picture_Timeout            = 0x05,
+  C328_Unexpected_Command              = 0x06,
+  C328_SRAM_JPEG_Type_Error            = 0x07,
+  C328_SRAM_JPEG_Size_Error            = 0x08,
+  C328_Picture_Format_Error            = 0x09,
+  C328_Picture_Size_Error              = 0x0a,
+  C328_Parameter_Error                 = 0x0b,
+  C328_Send_Register_Timeout           = 0x0c,
+  C328_Command_ID_Error                = 0x0d,
+  C328_Picture_Not_Ready               = 0x0f,
+  C328_Transfer_Package_Number_Error   = 0x10,
+  C328_Set_Transfer_Package_Size_Wrong = 0x11,
+  OOMRM_UNEXPECTED_COMMAND             = 0x20,
+  OOMRM_GET_COMMAND_TIMEOUT            = 0x21,
+  OOMRM_RECEIVE_ACK_TIMEOUT            = 0x22,
+  OOMRM_BAD_DATA                       = 0x30,
+  OOMRM_WAIT_DATA_ERROR                = 0x31,
+  OOMRM_PACKAGE_INCOMPLETE             = 0x32,
+  OOMRM_PACKAGE_ID_ERROR               = 0x33,
+  OOMRM_CAMERA_NOT_CONNECTED           = 0x34,
+  C328_Command_Header_Error            = 0xF0,
+  C328_Command_Length_Error            = 0xF1,
+  C328_Send_Picture_Error              = 0xF5,
+  C328_Send_Command_Error              = 0xff,
+  };
+
+enum C328_LIGHT_FREQUENCY_TYPE
+  {
+    C328_50Hz =  0,
+    C328_60Hz =  1,
+  };
+
+// -----------------------------------
+// Generic Cmaera Types
+// -----------------------------------
+// Defined an interface type for generic camera, but for now, just use c328 definitions
+// (will know how to make more generic if I work with another camera).
+typedef enum C328_COLOR_TYPE OOMRM_COLOR_TYPE;
+typedef enum C328_JPEG_RESOLUTION OOMRM_JPEG_RESOLUTION;
+typedef enum C328_PREVIEW_RESOLUTION OOMRM_PREVIEW_RESOLUTION;
+typedef enum C328_PICTURE_TYPE OOMRM_PICTURE_TYPE;
+typedef enum C328_SNAPSHOT_TYPE OOMRM_SNAPSHOT_TYPE;
+typedef enum C328_LIGHT_FREQUENCY_TYPE OOMRM_LIGHT_FREQUENCY_TYPE;
+
+
+/** 
+NOTE: Using format_option for c328 camera option set:
+Initial
+Bit 0-3 [Color-Type See 1.1]
+Bit 4-7 [JPEG Resolution; See 1.2/1.3]
+Get Picture
+Bit 8-11 [Picture Type] 
+Initial
+Bit 12-13 [Preview Resolution]
+Snaphot
+Bit 14 [0=uncompressed 1=compressed]
+Light Frequency
+Bit 15 [0=50Hz; 1=60Hz
+
+*/
+#define JAUS_C328_COLOR_TYPE(jct)           (((jct)&0x000F))
+#define JAUS_C328_JPEG_RESOLUTION(jct)      (((jct)&0x00F0)>>4)
+#define JAUS_C328_PICTURE_TYPE(jct)         (((jct)&0x0F00)>>8)
+#define JAUS_C328_PREVIEW_RESOLUTION(jct)   (((jct)&0x3000)>>12)
+#define JAUS_C328_SNAPSHOT_TYPE(jct)        (((jct)&0x4000)>>14)
+#define JAUS_C328_LIGHT_FREQUENCY_TYPE(jct) (((jct)&0x8000)>>15)
+// Whether or not to use the Snapshot or directly pull from camera.
+//#define JAUS_C328_SNAPSHOT(jct)             (((jct)&0x10000)>>16)
+
+
+#endif
+
